@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaSupportAI — Customer Support</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0b;
+      --surface: #111114;
+      --surface2: #18181d;
+      --border: #242428;
+      --border2: #2e2e35;
+      --accent: #e8ff47;
+      --accent2: #b5f500;
+      --text: #f0f0f0;
+      --text2: #888890;
+      --text3: #555560;
+      --bot-bubble: #16161b;
+      --user-bubble: #1e2a00;
+      --red: #ff4444;
+      --radius: 14px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      height: 100vh;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      padding: 24px 0;
+    }
+
+    .brand {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-icon svg { width: 18px; height: 18px; }
+
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-left: 42px;
+    }
+
+    .sidebar-section {
+      padding: 20px 20px 0;
+    }
+
+    .sidebar-label {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 12px;
+    }
+
+    .quick-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 2px;
+      border: none;
+      background: none;
+      width: 100%;
+      color: var(--text2);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      text-align: left;
+    }
+
+    .quick-link:hover { background: var(--surface2); color: var(--text); }
+
+    .quick-link .ql-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .status-strip {
+      margin-top: auto;
+      padding: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e80;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .response-time {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-top: 6px;
+    }
+
+    /* MAIN CHAT AREA */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* HEADER */
+    .chat-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .agent-avatar {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .agent-info h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .agent-status {
+      font-size: 11px;
+      color: #22c55e;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .header-actions { display: flex; gap: 8px; }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text2);
+      transition: all 0.15s;
+    }
+
+    .icon-btn:hover { background: var(--border); color: var(--text); }
+
+    /* MESSAGES */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    /* Welcome */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+      gap: 20px;
+      padding: 40px 20px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .welcome-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      box-shadow: 0 0 40px #e8ff4730;
+    }
+
+    .welcome h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--text);
+    }
+
+    .welcome p {
+      font-size: 14px;
+      color: var(--text2);
+      max-width: 340px;
+      line-height: 1.7;
+    }
+
+    .suggestion-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      max-width: 500px;
+      margin-top: 8px;
+    }
+
+    .suggestion-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      color: var(--text2);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+      line-height: 1.4;
+    }
+
+    .suggestion-chip:hover {
+      background: var(--border);
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    /* Message bubbles */
+    .msg-row {
+      display: flex;
+      gap: 12px;
+      animation: fadeUp 0.3s ease both;
+      max-width: 100%;
+    }
+
+    .msg-row.user { flex-direction: row-reverse; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+
+    .msg-avatar.bot {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+
+    .msg-avatar.user {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text2);
+    }
+
+    .msg-content { max-width: calc(100% - 100px); }
+
+    .msg-row.user .msg-content { display: flex; flex-direction: column; align-items: flex-end; }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      line-height: 1.65;
+      position: relative;
+    }
+
+    .bubble.bot {
+      background: var(--bot-bubble);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+
+    .bubble.user {
+      background: var(--user-bubble);
+      border: 1px solid #3d5200;
+      color: var(--text);
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-meta {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-top: 5px;
+      padding: 0 4px;
+    }
+
+    /* Typing indicator */
+    .typing-row {
+      display: flex;
+      gap: 12px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .typing-bubble {
+      background: var(--bot-bubble);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      border-bottom-left-radius: 4px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text3);
+      animation: typingBounce 1.2s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Error */
+    .error-banner {
+      background: #1a0000;
+      border: 1px solid var(--red);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #ff8080;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* INPUT AREA */
+    .input-area {
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .input-bar {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 10px 10px 10px 16px;
+      transition: border-color 0.2s;
+    }
+
+    .input-bar:focus-within { border-color: var(--accent); }
+
+    #userInput {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      resize: none;
+      max-height: 120px;
+      line-height: 1.5;
+      min-height: 22px;
+    }
+
+    #userInput::placeholder { color: var(--text3); }
+
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .send-btn:hover { background: var(--accent2); transform: scale(1.05); }
+    .send-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+    .send-btn svg { width: 16px; height: 16px; }
+
+    .input-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding: 0 4px;
+    }
+
+    .input-hint { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      transition: color 0.15s;
+    }
+
+    .clear-btn:hover { color: var(--red); }
+
+    /* Ticket badge */
+    .ticket-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 3px 10px 3px 6px;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text3);
+      margin-top: 6px;
+    }
+
+    .ticket-badge span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .messages { padding: 16px; }
+      .input-area { padding: 12px 16px 16px; }
+      .suggestion-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0b" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="brand-name">NovaTech</span>
+      </div>
+      <div class="brand-sub">support.novatech.io</div>
+    </div>
+
+    <div class="sidebar-section" style="margin-top:20px">
+      <div class="sidebar-label">Quick Help</div>
+      <button class="quick-link" onclick="sendSuggestion('How do I reset my password?')">
+        <div class="ql-icon">🔐</div> Login & Access
+      </button>
+      <button class="quick-link" onclick="sendSuggestion('How do I upgrade or change my subscription plan?')">
+        <div class="ql-icon">💳</div> Billing & Plans
+      </button>
+      <button class="quick-link" onclick="sendSuggestion('How do I invite team members to my workspace?')">
+        <div class="ql-icon">👥</div> Team Management
+      </button>
+      <button class="quick-link" onclick="sendSuggestion('How do I connect Slack to my NovaTech workspace?')">
+        <div class="ql-icon">🔗</div> Integrations
+      </button>
+      <button class="quick-link" onclick="sendSuggestion('I found a bug in the dashboard reporting feature.')">
+        <div class="ql-icon">🐛</div> Report a Bug
+      </button>
+      <button class="quick-link" onclick="sendSuggestion('I would like to request a refund.')">
+        <div class="ql-icon">↩️</div> Refund Request
+      </button>
+    </div>
+
+    <div class="status-strip">
+      <div class="status-row">
+        <div class="status-dot"></div>
+        <span>AI Support Online</span>
+      </div>
+      <div class="response-time">avg. response &lt; 3s</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CHAT -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div class="header-left">
+        <div class="agent-avatar">⚡</div>
+        <div class="agent-info">
+          <h2>NovaSupportAI</h2>
+          <div class="agent-status">● Online — ready to help</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="clearChat()" title="Clear chat">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+          </svg>
+        </button>
+        <button class="icon-btn" onclick="exportChat()" title="Export chat">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">⚡</div>
+        <h3>How can we help you today?</h3>
+        <p>Ask me anything about your account, billing, features, or technical issues. I'm here 24/7.</p>
+        <div class="suggestion-grid" id="suggestionGrid"></div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-bar">
+        <textarea id="userInput" placeholder="Describe your issue or ask a question..." rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0b" stroke-width="2.5" stroke-linecap="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+      <div class="input-footer">
+        <span class="input-hint">Enter to send · Shift+Enter for newline</span>
+        <button class="clear-btn" onclick="clearChat()">Clear conversation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:3001';
+  let conversationHistory = [];
+  let ticketCounter = Math.floor(Math.random() * 9000) + 1000;
+
+  // Auto-resize textarea
+  const textarea = document.getElementById('userInput');
+  textarea.addEventListener('input', () => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  });
+
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Load suggestions
+  async function loadSuggestions() {
+    try {
+      const res = await fetch(`${API_BASE}/api/suggestions`);
+      const data = await res.json();
+      const grid = document.getElementById('suggestionGrid');
+      grid.innerHTML = data.suggestions.slice(0, 6).map(s =>
+        `<button class="suggestion-chip" onclick="sendSuggestion('${s.replace(/'/g,"\\'")}')">
+          ${s}
+        </button>`
+      ).join('');
+    } catch {
+      // fallback — backend not needed for suggestions
+    }
+  }
+
+  function sendSuggestion(text) {
+    textarea.value = text;
+    sendMessage();
+  }
+
+  function getTime() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function hideWelcome() {
+    const w = document.getElementById('welcome');
+    if (w) w.remove();
+  }
+
+  function appendMessage(role, content) {
+    hideWelcome();
+    const container = document.getElementById('messages');
+    const isUser = role === 'user';
+
+    const row = document.createElement('div');
+    row.className = `msg-row ${isUser ? 'user' : ''}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `msg-avatar ${isUser ? 'user' : 'bot'}`;
+    avatar.textContent = isUser ? '👤' : '⚡';
+
+    const msgContent = document.createElement('div');
+    msgContent.className = 'msg-content';
+
+    const bubble = document.createElement('div');
+    bubble.className = `bubble ${isUser ? 'user' : 'bot'}`;
+    bubble.innerHTML = content.replace(/\n/g, '<br>');
+
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    meta.textContent = getTime();
+
+    msgContent.appendChild(bubble);
+    msgContent.appendChild(meta);
+
+    if (!isUser) {
+      // Add ticket badge to first bot message
+      if (conversationHistory.filter(m => m.role === 'assistant').length === 0) {
+        const badge = document.createElement('div');
+        badge.className = 'ticket-badge';
+        badge.innerHTML = `<span></span> Ticket #NT-${ticketCounter}`;
+        msgContent.appendChild(badge);
+      }
+    }
+
+    row.appendChild(avatar);
+    row.appendChild(msgContent);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function showTyping() {
+    hideWelcome();
+    const container = document.getElementById('messages');
+    const row = document.createElement('div');
+    row.className = 'typing-row';
+    row.id = 'typingIndicator';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar bot';
+    avatar.textContent = '⚡';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'typing-bubble';
+    bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function hideTyping() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) indicator.remove();
+  }
+
+  function showError(msg) {
+    const container = document.getElementById('messages');
+    const err = document.createElement('div');
+    err.className = 'error-banner';
+    err.innerHTML = `<span>⚠️</span> ${msg}`;
+    container.appendChild(err);
+    container.scrollTop = container.scrollHeight;
+    setTimeout(() => err.remove(), 5000);
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    appendMessage('user', text);
+    conversationHistory.push({ role: 'user', content: text });
+
+    showTyping();
+
+    try {
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversationHistory })
+      });
+
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+      const data = await res.json();
+      hideTyping();
+
+      if (data.error) throw new Error(data.error);
+
+      appendMessage('assistant', data.message);
+      conversationHistory.push({ role: 'assistant', content: data.message });
+
+    } catch (err) {
+      hideTyping();
+      showError(err.message || 'Connection failed. Make sure the backend is running on port 3001.');
+      conversationHistory.pop();
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  function clearChat() {
+    conversationHistory = [];
+    ticketCounter = Math.floor(Math.random() * 9000) + 1000;
+    const container = document.getElementById('messages');
+    container.innerHTML = `
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">⚡</div>
+        <h3>How can we help you today?</h3>
+        <p>Ask me anything about your account, billing, features, or technical issues. I'm here 24/7.</p>
+        <div class="suggestion-grid" id="suggestionGrid"></div>
+      </div>`;
+    loadSuggestions();
+  }
+
+  function exportChat() {
+    if (!conversationHistory.length) return;
+    const lines = conversationHistory.map(m =>
+      `[${m.role.toUpperCase()}] ${m.content}`
+    ).join('\n\n');
+    const blob = new Blob([`NovaSupportAI Chat Export\nTicket #NT-${ticketCounter}\n${'─'.repeat(40)}\n\n${lines}`], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `nova-support-NT${ticketCounter}.txt`;
+    a.click();
+  }
+
+  // Init
+  loadSuggestions();
+</script>
+</body>
+</html>
